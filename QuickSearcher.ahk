@@ -1,5 +1,5 @@
 ﻿;@Ahk2Exe-SetName       	VlcNotesQuickSearcher.exe
-;@Ahk2Exe-SetVersion    	0.1.3.0 	
+;@Ahk2Exe-SetVersion    	0.1.4.0 	
 ;@Ahk2Exe-SetDescription  	VlcNotesQuickSearcher.App
 ;@Ahk2Exe-SetCopyright    	discretecourage#0179
 ;@Ahk2Exe-SetCompanyName  	discretecourage#0179
@@ -8,7 +8,7 @@
 
 ;=============== CURRENT VERSION ==================================
 
-Current_version:="v0.1.3.0"  ; In github always create new release tag with same name
+Current_version:="v0.1.4.0"  ; In github always create new release tag with same name
 
 ;==================================================================
 
@@ -20,6 +20,10 @@ Changelog =
 - Added Random image downloader
 - adjusted the position of browser popup
 
+[ v0.1.4.0 ] ========================================
+
+- added Left ALT + G / T / I / A / B hotkeys instead of clicking on the buttons
+- Error fix and minor bug fixes 
 
 ==================================================================
 ) 
@@ -27,7 +31,7 @@ Changelog =
 #SingleInstance, Force
 #NoEnv
 #MaxThreadsBuffer on
-#WarnContinuableException Off 
+#WarnContinuableException OFF
 SetTitleMatchMode, 2
 SetBatchLines -1
 CoordMode,Pixel,Screen
@@ -54,7 +58,7 @@ SendMode Input
 
 
 
-global my_guiid
+global QuickGUIID
 global DarkModeStyle :=[ [3, 0xFF565656, 0xFF000000 , 0xFFA1A1A1, 5, 0xFF000000 , 0xFF000000, 1]
 					  , [2,  0xFF1C1C1C, 0xFF1C1C1C , 0xFFA1A1A1, 5, 0xFF000000 , 0x80E6E6E6, -1]
                       , [2, 0xFF1C1C1C, 0xFF1C1C1C , 0xFFA1A1A1, 5, 0xFF000000 , 0xFF000000, 1]
@@ -83,6 +87,8 @@ Updatechecker=
 (
 ; #Persistent
 #NoTrayIcon
+#SingleInstance, Force
+#WarnContinuableException OFF
 ; #include <cJSON>
 AhkExe := AhkExported()  ; ahkExe.AhkGetVar.variable
 
@@ -268,6 +274,7 @@ FontScaling := Round(96/A_ScreenDPI*10) + 5
 FontLarge := FontScaling + 10
 
 Gui,QuickGUI: Font, s%FontScaling%  q5, Arial
+Gui,QuickGUI: +HwndQuickGUIID
 Gui,QuickGUI: +AlwaysOnTop  -DPIScale -Caption  +MinSize480x150 +MaxSize480x150  +Resize ; +toolwindow ; +Border
 Gui,QuickGUI: Margin , 40 , 40
 
@@ -278,8 +285,8 @@ Gui,QuickGUI:Add,text,xp y+5 w1 h40 BackgroundTrans,
 
 loop,% GuiButtons.MaxIndex()
     {
-Gui,QuickGUI:Add,Button,% "x+1 yp w40 h40 HwnddBTN0 vdBTN0_" . A_Index . " glbl_" . GuiButtons[A_Index] , % GuiButtons[A_Index]
-Gui,QuickGUI:Add,Button,% "xp yp w40 h40 vlBTN0_" . A_Index . " glbl_" . GuiButtons[A_Index] , % GuiButtons[A_Index]
+Gui,QuickGUI:Add,Button,% "x+1 yp w40 h40 HwnddBTN0 vdBTN0_" . A_Index . " glbl_" . GuiButtons[A_Index] , %  GuiButtons[A_Index]
+Gui,QuickGUI:Add,Button,% "xp yp w40 h40 vlBTN0_" . A_Index . " glbl_" . GuiButtons[A_Index] , %  GuiButtons[A_Index]
 ImageButton.Create(dBTN0, DarkModeStyle*)
     }
 Gui,QuickGUI: Add, Picture,x312 yp+10 w20 h20 vPicture1 glbl_th_fr_cfe,%A_WorkingDir%\assets\skbfklsfkionu_1.png
@@ -294,11 +301,12 @@ Gui,QuickGUI:Add,Button,% "xp yp w40 h40 vlBTN0_d glbl_Dark_Mode_direct Hidden "
 ImageButton.Create(dBTN0, DarkModeStyle*)
 ; }
 Gosub,  lbl_Dark_Mode
-Gui,QuickGUI: show, % " w480 h150" , VlcNotes
-WinGet, my_guiid, ID, A
+Gui,QuickGUI: show, % " w480 h150" , QuicSearcherkGUI
+
+; msgbox, % QuickGUIID 
 if (UserVariables.b["Dont_show_start_up_message"]!=1) {
 Gui +OwnDialogs
-MsgBox 0x40040, Hiding to Tray, Hiding to tray `nHit hhotkey to show, 2
+MsgBox 0x40040, Hiding to Tray, Hiding to tray `nHit hotkey to show, 2
 IfMsgBox Timeout, {
 
 }
@@ -436,8 +444,27 @@ WinMove, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe,, 0, A_ScreenHeight//3.
 return
 
 
+#if (WinActive("Ahk_id " . QuickGUIID))
+!G::
+Gosub, lbl_G
+return
+!W::
+Gosub, lbl_W
+return
+!T::
+Gosub, lbl_T
+return
+!I::
+Gosub, lbl_I
+return
+!A::
+Gosub, lbl_Ai
+return
+!B::
+Gosub, lbl_B
+return
 
-
+#If
 
 lbl_Search_for_image_put_to_clipboard:
 Gosub, Grab_selected_text
